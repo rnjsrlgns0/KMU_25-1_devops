@@ -51,6 +51,86 @@
 - 각각의 vm은 define으로 vm의 attribute를 정의 후 end
 - shell을 이용하여 provision 후 end
 - 마지막으로 vagrant.configure을 통해 end
-# week3
-- 수업용 repository 생성
-- 교수님 초대
+# 3주차 과제 진행사항 
+- 과제: gitlab runner 환경 추가 및 교수님 초대
+## runner instance 등록
+![gitlab_runner_instance_register](./assets/gitlab_runner_instance_register.png)
+### 1. 2주차에 구성했던 gitlab 환경 준비
+- 2주차 시점의 vagrantfile 내에는 이미 runner가 추가되어 있음 -> 주석처리
+- `vagrant up`
+### runner 환경 준비
+- 참조: [[DevOps  Deployment - 03.pdf]]
+- 목표: 구성된 gitlab 환경에서 새로운 runner 인스턴스 등록
+1. 2주차 시점의 vagrantfile 내에는 이미 gitlab이 추가되어 있음 -> 주석처리
+2. repo에 별도 runner 디렉터리 생성 후 vagrantfile 옮기기
+```sh
+# 명령 실행 시 registration-token 옵션 기입 기능 추가
+require 'getoptlong'
+opts = GetoptLong.new(
+  [ '--registration-token', GetoptLong::OPTIONAL_ARGUMENT ]
+)
+
+REGISTRATION_TOKEN=""
+
+opts.each do |opt, arg|
+  case opt
+    when '--registration-token'
+      REGISTRATION_TOKEN=arg
+  end
+end
+
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  # GitLab Runner VM 설정
+  config.vm.define :runner do |cfg|  
+    cfg.vm.box = "bento/ubuntu-22.04"
+    cfg.vm.box_version = "202502.21.0"
+    cfg.vm.hostname = "ci-runner"
+    cfg.vm.network "private_network", ip: "192.168.33.45"  
+
+    cfg.vm.provider "parallels" do |prl| 
+      # prl.gui = true 
+      prl.name = "ci-runner"
+      prl.memory = "2048"
+    end
+
+    cfg.vm.provision "shell", inline: <<-SHELL
+      sudo apt-get update
+      sudo apt-get install -y curl
+
+      # GitLab Runner 설치
+      sudo curl -L --output /usr/local/bin/gitlab-runner https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-arm64
+      sudo chmod +x /usr/local/bin/gitlab-runner
+
+      # GitLab Runner 사용자 추가
+      sudo useradd --comment 'CI Runner' --create-home ci-runner --shell /bin/bash
+
+      # GitLab Runner 서비스 등록 및 시작
+      sudo gitlab-runner install --user=ci-runner --working-directory=/home/ci-runner
+      sudo gitlab-runner start
+
+      # Runner 등록 -> 이부분이 runner 등록하는 부분
+      sudo gitlab-runner register \
+        --non-interactive \
+        --url "http://192.168.33.44/" \ #->구성된 git lab의 url
+        --registration-token "#{REGISTRATION_TOKEN}" \ #-> 위에서 변수로 받아오는 registration token
+        --executor "shell" \
+        --description "shell-runner" \
+        --maintenance-note "Free-form maintainer notes about this runner" \
+        --tag-list "shell,aws" \
+        --run-untagged="true" \
+        --locked="false" \
+        --access-level="not_protected"
+    SHELL
+  end  # GitLab Runner VM 끝
+end
+```
+3. 명령어 실행
+```sh
+vagrant --registration-token='gitlab에서 registration token 보고 오기' up
+vagrant --registration-token='상동' provision
+```
+4. 결과: http://localhost:8082/admin/runners
+	![register_runnerinstance_result](./assets/register_runnerinstance_result.png)

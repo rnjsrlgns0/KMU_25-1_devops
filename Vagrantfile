@@ -39,34 +39,34 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     SHELL
   end  # GitLab 서버 VM 끝
 
-  # GitLab Runner VM 설정
-  config.vm.define :runner do |cfg|  
-    cfg.vm.box = "bento/ubuntu-22.04"
-    cfg.vm.box_version = "202502.21.0"
-    cfg.vm.hostname = "runner.local"
-    cfg.vm.network "private_network", ip: "192.168.33.45"  
+  # # GitLab Runner VM 설정
+  # config.vm.define :runner do |cfg|  
+  #   cfg.vm.box = "bento/ubuntu-22.04"
+  #   cfg.vm.box_version = "202502.21.0"
+  #   cfg.vm.hostname = "runner.local"
+  #   cfg.vm.network "private_network", ip: "192.168.33.45"  
 
-    cfg.vm.provider "parallels" do |prl| 
-      prl.gui = true 
-      prl.name = "gitlab-runner.local"
-      prl.memory = "2048"
-    end
+  #   cfg.vm.provider "parallels" do |prl| 
+  #     prl.gui = true 
+  #     prl.name = "gitlab-runner.local"
+  #     prl.memory = "2048"
+  #   end
 
-    cfg.vm.provision "shell", inline: <<-SHELL
-      sudo apt-get update
-      sudo apt-get install -y curl
+  #   cfg.vm.provision "shell", inline: <<-SHELL
+  #     sudo apt-get update
+  #     sudo apt-get install -y curl
 
-      # GitLab Runner 설치
-      sudo curl -L --output /usr/local/bin/gitlab-runner https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-arm64
-      sudo chmod +x /usr/local/bin/gitlab-runner
+  #     # GitLab Runner 설치
+  #     sudo curl -L --output /usr/local/bin/gitlab-runner https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-arm64
+  #     sudo chmod +x /usr/local/bin/gitlab-runner
 
-      # GitLab Runner 사용자 추가
-      sudo useradd --comment 'GitLab Runner' --create-home gitlab-runner --shell /bin/bash
+  #     # GitLab Runner 사용자 추가
+  #     sudo useradd --comment 'GitLab Runner' --create-home gitlab-runner --shell /bin/bash
 
-      # GitLab Runner 서비스 등록 및 시작
-      sudo gitlab-runner install --user=gitlab-runner --working-directory=/home/gitlab-runner
-      sudo gitlab-runner start
-    SHELL
-  end  # GitLab Runner VM 끝
+  #     # GitLab Runner 서비스 등록 및 시작
+  #     sudo gitlab-runner install --user=gitlab-runner --working-directory=/home/gitlab-runner
+  #     sudo gitlab-runner start
+  #   SHELL
+  # end  # GitLab Runner VM 끝
 end
 
