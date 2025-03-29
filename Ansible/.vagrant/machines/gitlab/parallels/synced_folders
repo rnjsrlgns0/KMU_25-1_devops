@@ -1,0 +1,1 @@
+{"rsync":{"/vagrant":{"type":"rsync","rsync__exclude":[".git/"],"guestpath":"/vagrant","hostpath":"/Users/kownkihoon/gitlab/Ansible","disabled":false,"__vagrantfile":true,"exclude":[".git/"],"owner":"vagrant","group":"vagrant"}}}

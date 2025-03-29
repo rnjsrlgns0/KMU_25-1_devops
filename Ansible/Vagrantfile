@@ -1,0 +1,35 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  # GitLab 서버 VM 설정
+  config.vm.define :gitlab do |cfg|
+    cfg.vm.box = "bento/ubuntu-22.04"
+    cfg.vm.box_version = "202502.21.0"
+    cfg.vm.hostname = "ansible.local"
+
+    cfg.vm.provider "parallels" do |prl|
+      prl.name = "ansible.local"
+      prl.memory = "2048"
+    end
+
+    # 강좌 예제에 있는 설정, 본 환경에서는 parallels 사용하여 적용 안됨 
+    # if Vagrant.has_plugin?("vagrant-vbguest")
+    #   cfg.vbguest.auto_update = false
+    # end    
+    cfg.vm.network "private_network", ip: "192.168.33.46"
+    cfg.vm.synced_folder ".", "/vagrant", type: "rsync", rsync__exclude: [".git/"]
+
+    cfg.vm.provision "shell", inline: <<-SHELL
+      export DEBIAN_FRONTEND=noninteractive
+      sudo apt -y update
+      sudo apt install -y software-properties-common
+      sudo add-apt-repository --yes --update ppa:ansible/ansible
+      sudo apt install -y ansible-core
+    SHELL
+  end  # GitLab 서버 VM 끝
+
+end
+

@@ -1,3 +1,12 @@
+# DevOps 관련 포트 할당
+- Gitlab: 
+  - "private_network", ip: "192.168.33.44"
+  - "forwarded_port", guest: 80, host: 8083 
+- Runner: 
+  - "private_network", ip: "192.168.33.45"
+- Ansible: 
+  - "private_network", ip: "192.168.33.46"
+  - "forwarded_port", guest: 81, host: 8083, 
 # 1주차 과제 진행사항
 - 가상환경 구축: mac, window, linux 다 있음
 	- 가상머신-==virtual box== or hyper v 설치: 최신 버전으로
@@ -133,4 +142,74 @@ vagrant --registration-token='gitlab에서 registration token 보고 오기' up
 vagrant --registration-token='상동' provision
 ```
 4. 결과: http://localhost:8082/admin/runners
-	![register_runnerinstance_result](./assets/register_runnerinstance_result.png)
+	![register_runnerinstance_result.png](./assets/register_runnerinstance_result.png)
+
+# week4
+## Ansible이 설치된 vm 만들기: Vagrant
+```sh
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  # GitLab 서버 VM 설정
+  config.vm.define :gitlab do |cfg|
+    cfg.vm.box = "bento/ubuntu-22.04"
+    cfg.vm.box_version = "202502.21.0"
+    cfg.vm.hostname = "ansible.local"
+
+    cfg.vm.provider "parallels" do |prl|
+      prl.name = "ansible.local"
+      prl.memory = "2048"
+    end
+
+    # 강좌 예제에 있는 설정, 본 환경에서는 parallels 사용하여 적용 안됨 
+    # if Vagrant.has_plugin?("vagrant-vbguest")
+    #   cfg.vbguest.auto_update = false
+    # end    
+    cfg.vm.network "private_network", ip: "192.168.33.46"
+    cfg.vm.synced_folder ".", "/vagrant", type: "rsync", rsync__exclude: [".git/"]
+
+    cfg.vm.provision "shell", inline: <<-SHELL
+      export DEBIAN_FRONTEND=noninteractive
+      sudo apt -y update
+      sudo apt install -y software-properties-common
+      sudo add-apt-repository --yes --update ppa:ansible/ansible
+      sudo apt install -y ansible-core
+    SHELL
+  end  # GitLab 서버 VM 끝
+
+end
+```
+- 구축한 vm에 접속(vagrant ssh) 후 버전 확인![ansible_version](./assets/week4/ansible-version.png)
+- Ansible에 호스트 등록하기
+```sh
+sudo bash
+echo "localhost" >> /etc/ansible/hosts
+```
+- ansible로 nginx 서비스 시작하기 
+```sh
+sudo apt install -y nginx
+ansible localhost -b -c local -m service -a "name-nginx state=started"
+```
+![nginx_start](./assets/week4/ansible_nginx_started.png)
+## ansible-playbook으로 위 작업 실행하기
+- 플레이북 repo clone
+```sh
+sudo apt install -y git
+git clone https://github.com/devops-book/ansible-playbook-sample.git
+```
+- commin task의 main.yml 처리: yum 패키지 관리자를 사용토록 설정->ubuntu에 맞지 않으니 주석
+- nginx task의 main.yml 처리: 교재참조
+- playbook 실행
+```sh
+cd ansible-playbook-sample
+ansible-playbook -i development site.yml
+```
+![nginx_start_by_playbook](./assets/week4/ansible_playbook_activate.png)
+- production으로 변경
+```sh
+ansible-playbook -i production site.yml
+```
+![nginx_start_by_playbook_production](./assets/week4/ansible_playbook_production.png)
