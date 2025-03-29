@@ -19,7 +19,7 @@
 - `NS_ERROR_FAILURE (0x80004005)`
 ### 원인: Mac OS 15 미지원
 - ~~virtual box 최신 버전: mac os 15 미지원~~
-	![[스크린샷 2025-03-21 오후 5.55.06.png]]
+	![[assets/virtualbox os compatiblity.png]]
 - https://www.virtualbox.org/manual/topics/Introduction.html#host-guest-matrix
 #### parallels 사용:https://kb.parallels.com/en/122843
 - gitlab 초기비번
@@ -27,27 +27,27 @@
 	- `63rB+XuWnYB5L1cLvWlToxR3mVhoa572ouhNqxhYBIA=`
 - gitlab runner token: `y9msypot9tBS2H2yBtvU`
 - parallels 사용 후 전체적으로 큰 문제 없이 진행
-	- gitlab-ce 다운 시 경로 문제로 지체 됐음![[./assets/gitlab download directory.png]]
+	- gitlab-ce 다운 시 경로 문제로 지체 됐음![[assets/gitlab download directory.png]]
 		- 상기구문 해석: home/vagrant/gitlab-ce가 없으면 다운로드 후 설치
 		- ==issue: 수업자료 상 sudo dpkg -i vagrant/gitlab-ce로 입력 시 실제 설치파일 경로 -> /home/vagrant/vagrant/gitlab-ce==
 			➡️ dpkg 명령 시 vagrant/ 제거 후 설치 파일명만 입력
 ### vm gitlab
 - 로그인
-![[스크린샷 2025-03-29 오전 11.26.31.png|500]]
+![[assets/gitlab login.png]]
 - CI-CD: gitlab runner 사용
 	1. git lab 좌상단의 햄버거 메뉴 클릭 -> runners 클릭
 	2. 우측 'register an instance runner' -> register token 사용
 	3. 환경 별 runner 관리 코드 존재, ==gitlab vm 을 정의했던 vagrant file에서 함께 관리할 수 있음==
 ### 하나의 vagrant file에서 복수의 vm 관리
 -  강의 자료의 예시
-	![[스크린샷 2025-03-29 오전 11.33.50.png|500]]
+	![[assets/multi vm vagrant.png]]
 	- vm이 둘 이상일 때, config.vm.define 구문을 추가하여 관리(vm이 하나일 때는 별도 정의 x)
 	- 위의 예시에서는 gitlab과 runner를 각각 정의
 - 실제 과제 수행 vagrant 파일
 	- gitlab vm 정의
-		![[스크린샷 2025-03-29 오전 11.44.56.png|500]]
+		![[assets/vagrant vm gitlab.png]]
 	- runner vm 정의
-		![[스크린샷 2025-03-29 오전 11.47.45.png|500]]
+		![[assets/vagrant vm gitlab-runner.png]]
 - 각각의 vm은 define으로 vm의 attribute를 정의 후 end
 - shell을 이용하여 provision 후 end
 - 마지막으로 vagrant.configure을 통해 end
